@@ -50,7 +50,10 @@ export default class Model extends Object3D {
 
   applyEnvironmentMap(map) {
     this.modelContainer.traverse(obj => {
-      if (obj && obj.isMesh && obj.material) {
+      // Unlit models (using MeshBasicMaterial) should not apply
+      // an environment map, even though `map` is the currently configured
+      // environment map.
+      if (obj && obj.isMesh && obj.material && !obj.material.isMeshBasicMaterial) {
         obj.material.envMap = map;
         obj.material.needsUpdate = true;
       }

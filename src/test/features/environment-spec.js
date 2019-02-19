@@ -21,6 +21,7 @@ import {BasicSpecTemplate} from '../templates.js';
 const expect = chai.expect;
 const BG_IMAGE_URL = assetPath('spruit_sunrise_2k.jpg');
 const MODEL_URL = assetPath('reflective-sphere.gltf');
+const UNLIT_MODEL_URL = assetPath('UnlitTest.glb');
 
 const backgroundHasMap =
     (scene, url) => {
@@ -57,6 +58,16 @@ const modelUsingEnvMap = (scene, meta) => {
   });
   return found;
 };
+
+const modelHasEnvMap = (scene) => {
+  let found = false;
+  scene.model.traverse(object => {
+    if (object.material && object.material.envMap) {
+      found = true;
+    }
+  });
+  return found;
+}
 
 /**
  * Takes a model object and a meta object and returns
@@ -154,6 +165,19 @@ suite('ModelViewerElementBase with EnvironmentMixin', () => {
           expect(lightColor).to.be.equal('ffffff');
         });
       });
+
+      suite('on an unlit model', () => {
+        setup(async () => {
+          let onLoad = waitForLoadAndEnvMap(scene, element, {
+            url: BG_IMAGE_URL,
+          });
+          element.src = UNLIT_MODEL_URL;
+          await onLoad;
+        });
+        test('applies no environment map on unlit model', async function() {
+          expect(!modelHasEnvMap(scene)).to.be.ok;
+        });
+      });
     });
   });
 
@@ -188,6 +212,19 @@ suite('ModelViewerElementBase with EnvironmentMixin', () => {
       test('the directional light is tinted', () => {
         const lightColor = scene.shadowLight.color.getHexString().toLowerCase();
         expect(lightColor).to.not.be.equal('ffffff');
+      });
+
+      suite('on an unlit model', () => {
+        setup(async () => {
+          let onLoad = waitForLoadAndEnvMap(scene, element, {
+            url: null,
+          });
+          element.src = UNLIT_MODEL_URL;
+          await onLoad;
+        });
+        test('applies no environment map on unlit model', async function() {
+          expect(!modelHasEnvMap(scene)).to.be.ok;
+        });
       });
     });
   });
